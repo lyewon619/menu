@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>오늘의 메뉴 돌림판</title>
+  <style>
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: 'Arial', sans-serif;
+      background: #f0f0f0;
+    }
+    canvas {
+      border: 8px solid #333;
+      border-radius: 50%;
+      background: white;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 10px;
+      border: none;
+      background: #ff6666;
+      color: white;
+    }
+    #result {
+      margin-top: 30px;
+      font-size: 24px;
+      font-weight: bold;
+      color: #9933cc;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="wheel" width="500" height="500"></canvas>
+  <button id="spinBtn">돌려!</button>
+  <div id="result"></div>
+
+  <script>
+    const menus = [
+      "명화당", "서울익스프레스88", "한촌설렁탕", "진국수", "엄마손집밥", "아담스 꼬마김밥", "케이밥상",
+      "샐러디", "오예술김밥", "백소정", "함경도찹쌀순대", "김가네", "밥향기", "로스트앤베이크", "가락정초밥",
+      "아비꼬", "데니스타코", "푼양이김치찌개", "더진국", "샤브로21", "미당뭉티기", "가츠현", "동경규동",
+      "반포식스", "양궈푸마라탕", "하루토", "최박사돈까스냉면", "홍콩반점", "동래정", "밀밭", "뿅의전설",
+      "옥된장", "조선닭꼬치", "행복한우동가게", "천미미", "오연숙불쭈꾸미", "예원", "흑돈1931",
+      "오심숙이 쭈꾸미 낙지", "우쿠야", "용과서울", "장강", "딹진또배기", "에그박스", "별동오징어",
+      "불의여우", "소림만두냉면", "롯데리아", "포브라더스"
+    ];
+
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const spinBtn = document.getElementById("spinBtn");
+    const resultDiv = document.getElementById("result");
+
+    let angle = 0;       // 현재 회전 각도
+    let spinning = false;
+    let speed = 0;       // 회전 속도
+
+    // 돌림판 그리기
+    function drawWheel() {
+      const size = menus.length;
+      const slice = (2 * Math.PI) / size;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (let i = 0; i < size; i++) {
+        ctx.beginPath();
+        ctx.moveTo(250, 250);
+        ctx.fillStyle = i % 2 === 0 ? "#ffcc99" : "#99ccff";
+        ctx.arc(250, 250, 240, angle + i * slice, angle + (i + 1) * slice);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(250, 250);
+        ctx.rotate(angle + i * slice + slice / 2);
+        ctx.textAlign = "right";
+        ctx.fillStyle = "#000";
+        ctx.font = "14px Arial";
+        ctx.fillText(menus[i], 220, 5);
+        ctx.restore();
+      }
+
+      // 포인터 (12시 방향)
+      ctx.fillStyle = "red";
+      ctx.beginPath();
+      ctx.moveTo(250, 10);
+      ctx.lineTo(240, 40);
+      ctx.lineTo(260, 40);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // 돌리기
+    function spinWheel() {
+      if (spinning) return;
+      spinning = true;
+      resultDiv.textContent = "";
+
+      speed = Math.random() * 0.3 + 0.3; // 랜덤 속도
+
+      function animate() {
+        angle += speed;
+        speed *= 0.98; // 점점 감속
+        drawWheel();
+
+        if (speed < 0.002) {
+          spinning = false;
+          const slice = (2 * Math.PI) / menus.length;
+
+          // 현재 각도 (0~2π)
+          let currentAngle = angle % (2 * Math.PI);
+
+          // 포인터(12시 방향 = 270도 = 3π/2 라디안) 기준으로 보정
+          let pointerAngle = (3 * Math.PI / 2 - currentAngle + 2 * Math.PI) % (2 * Math.PI);
+
+          // 몇 번째 조각인지 계산
+          const index = Math.floor(pointerAngle / slice) % menus.length;
+
+          resultDiv.textContent = "오늘의 메뉴: " + menus[index];
+        } else {
+          requestAnimationFrame(animate);
+        }
+      }
+
+      animate();
+    }
+
+    spinBtn.addEventListener("click", spinWheel);
+
+    drawWheel();
+  </script>
+</body>
+</html>
